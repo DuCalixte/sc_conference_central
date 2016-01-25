@@ -551,4 +551,48 @@ class ConferenceApi(remote.Service):
         )
 
 
+# - - - Speakers -  -   -
+
+    def _addSpeaker(self, request):
+        """On a session new speakers are added, if the speaker has been previously added than the speaker is updated."""
+
+
+    def _updateSpeaker(self, request):
+        """As no provision is made to delete a speaker object, the speaker information can be updated"""
+
+    def getSpeaker(self):
+
+
+    def getFeaturedSpeaker(self):
+
+c
+
+# - - - Sessions -  -   -
+
+    def _createSessionObject(self,request):
+
+
+    def _updateSessionObject(self, request):
+
+
+    def _deleteSessionObject(self, request):
+
+
+    def getConferenceSessions(self, websafeConferenceKey):
+
+    def getConferenceSessionsByType(self, websafeConferenceKey,typeOfSession):
+
+
+    def getSessionsBySpeaker(self, speaker):
+
+
+    def createSession(self, SessionForm, websafeConferenceKey):
+
+
+    def addSessionToWishlist(self, SessionKey):
+
+
+    def getSessionsInWishlist(self):
+
+
 api = endpoints.api_server([ConferenceApi]) # register API
