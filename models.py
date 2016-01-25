@@ -130,87 +130,87 @@ class ConferenceQueryForms(messages.Message):
 class Speaker(ndb.Model):
     """Speaker -- Speaker object """
     name = ndb.StringProperty(required=True)
-    sessions = ndb.StructuredProperty(
-        Session, repeated=True)
+    # sessions = ndb.StructuredProperty(
+    #     Session, repeated=True)
     speakerRole = ndb.StringProperty(
         default='Speaker')
     isFeatured = ndb.BooleanProperty(default=True)
 
 
-class SpeakerForm(messages.Message):
-    """SpeakerForm -- Speaker Information"""
-    name = messages.StringField(
-        1, required=True)
-    sessions = messages.MessageField(
-        SessionQueryForm, 2, repeated=True)
-    role = messages.EnumField('SpeakerRole', 3)
-    isFeatured = messages.BooleanField(
-        4, default=True)
+# class SpeakerQueryForm(messages.Message):
+#     """ConferenceQueryForm -- Conference query inbound form message"""
+#     field = messages.StringField(1)
+#     operator = messages.StringField(2)
+#     value = messages.StringField(3)
 
 
-class SpeakerRole(messages.Enum):
-    """Speaker Role -- a list of roles attributed to a Speaker"""
-    NOT_SPECIFIED = 1
-    Speaker = 2
-    Participant = 3
-    Host = 4
-    Keynote = 5
+# class SpeakerForm(messages.Message):
+#     """SpeakerForm -- Speaker Information"""
+#     name = messages.StringField(
+#         1, required=True)
+#     sessions = messages.MessageField(
+#         'SessionQueryForm', 2, repeated=True)
+#     role = messages.EnumField('SpeakerRole', 3)
+#     isFeatured = messages.BooleanField(
+#         4, default=True)
 
 
-class SpeakerQueryForm(messages.Message):
-    """ConferenceQueryForm -- Conference query inbound form message"""
-    field = messages.StringField(1)
-    operator = messages.StringField(2)
-    value = messages.StringField(3)
+# class SpeakerRole(messages.Enum):
+#     """Speaker Role -- a list of roles attributed to a Speaker"""
+#     NOT_SPECIFIED = 1
+#     Speaker = 2
+#     Participant = 3
+#     Host = 4
+#     Keynote = 5
 
 
-# - - - Classes for Session and Session Forms - - - - - - - - - - - - - - - - - - - -
-class Session(ndb.Model):
-    """Session -- Session object"""
-    name = ndb.StringProperty(
-        required=True)
-    description = ndb.StringProperty()
-    sessionID = ndb.StringProperty()
-    websafeConferenceKey = ndb.StringProperty(
-        required=True)
-    sessionTypes = ndb.StringProperty(
-        SessionType, repeated=True)
-    location = ndb.StringProperty()
-    date = ndb.DateProperty()
-    startTime = ndb.TimeProperty()
-    duration = ndb.IntegerPropertyProperty()
+# - - - Classes for Session and Session Forms - - -  - - - - - - - - -
+# class Session(ndb.Model):
+#     """Session -- Session object"""
+#     name = ndb.StringProperty(
+#         required=True)
+#     description = ndb.StringProperty()
+#     websafeConferenceKey = ndb.StringProperty(
+#         required=True)
+#     sessionTypes = ndb.StringProperty(
+#         'SessionType', repeated=True)
+#     speaker = ndb.StringProperty(required=True)
+#     location = ndb.StringProperty()
+#     date = ndb.DateProperty()
+#     startTime = ndb.TimeProperty()
+#     duration = ndb.IntegerPropertyProperty()
 
 
-class SessionForm(messages.Message):
-    name = messages.StringField(
-        1, required=True)
-    description = messages.StringField(2)
-    websafeConferenceKey = messages.StringField(
-        3, required=True)
-    location = messages.StringField(4)
-    date = messages.StringField(5)
-    startTime = messages.StringField(6)
-    duration = messages.IntegerField(7)
-    otherSpeakers = ndb.StructuredProperty(
-        Speaker, repeated=True)
+# class SessionForm(messages.Message):
+#     name = messages.StringField(
+#         1, required=True)
+#     description = messages.StringField(2)
+#     websafeConferenceKey = messages.StringField(
+#         3, required=True)
+#     speaker = messages.StringField(4, required=True)
+#     location = messages.StringField(5, required=True)
+#     date = messages.StringField(6)
+#     startTime = messages.StringField(7)
+#     duration = messages.IntegerField(8)
 
 
-class SessionType(messages.Enum):
-    """SessionType -- session type selection for a specific session"""
-    TBD = 1  # Session type to be determined
-    UNKNOWN = 2  # Session type exists but is unknown - similar to TBD
-    Workshop = 3
-    Case_Study = 4
-    Tutorial = 5
-    Talk = 6
-    Keynote = 7
-    Demonstration = 8
-    Panel = 9
-    Special = 10
+# class SessionType(messages.Enum):
+#     """SessionType -- session type selection for a specific session"""
+#     TBD = 1  # Session type to be determined
+#     UNKNOWN = 2  # Session type exists but is unknown - similar to TBD
+#     Workshop = 3
+#     Case_Study = 4
+#     Tutorial = 5
+#     Talk = 6
+#     Keynote = 7
+#     Demonstration = 8
+#     Panel = 9
+#     Special = 10
+#     Forum = 11
 
 
-class SessionQueryForm(messages.Message):
-    """ConferenceQueryForm -- Conference query inbound form message"""
-    field = messages.StringField(1)
-    operator = messages.StringField(2)
-    value = messages.StringField(3)
+# class SessionQueryForm(messages.Message):
+#     """ConferenceQueryForm -- Conference query inbound form message"""
+#     field = messages.StringField(1)
+#     operator = messages.StringField(2)
+#     value = messages.StringField(3)
