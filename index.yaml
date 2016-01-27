@@ -94,3 +94,19 @@ indexes:
   properties:
   - name: topics
   - name: name
+
+- kind: Speaker
+  properties:
+  - name: name
+  - name: role
+
+- kind: Speaker
+  properties:
+  - name: name
+  - name: sessionsKeys
+
+- kind: Speaker
+  properties:
+  - name: name
+  - name: role
+  - name: sessionsKeys
