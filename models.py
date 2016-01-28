@@ -27,6 +27,7 @@ class Profile(ndb.Model):
     mainEmail = ndb.StringProperty()
     teeShirtSize = ndb.StringProperty(default='NOT_SPECIFIED')
     conferenceKeysToAttend = ndb.StringProperty(repeated=True)
+    sessionWishList = ndb.StringProperty(repeated=True)
 
 class ProfileMiniForm(messages.Message):
     """ProfileMiniForm -- update Profile form message"""
@@ -39,6 +40,7 @@ class ProfileForm(messages.Message):
     mainEmail = messages.StringField(2)
     teeShirtSize = messages.EnumField('TeeShirtSize', 3)
     conferenceKeysToAttend = messages.StringField(4, repeated=True)
+    sessionWishList = messages.StringField(5, repeated=True)
 
 class StringMessage(messages.Message):
     """StringMessage-- outbound (single) string message"""
@@ -111,13 +113,11 @@ class ConferenceQueryForms(messages.Message):
 class Speaker(ndb.Model):
     """Speaker -- Speaker Object"""
     name            = ndb.StringProperty(required=True)
-    role            = ndb.StringProperty(default='Speaker', required=True)
     session_keys    = ndb.StringProperty(repeated=True)
 
 class SpeakerForm(messages.Message):
     """SpeakerForm -- Speaker outbound form message"""
     name            = messages.StringField(1)
-    role            = messages.EnumField('SpeakerRole', 2)
     session_keys    = messages.StringField(3, repeated=True)
 
 class SpeakerRole(messages.Enum):
@@ -128,6 +128,10 @@ class SpeakerRole(messages.Enum):
     Keynote = 4
     Presenter = 5
 
+class SpeakerSessionQueryForm(messages.Message):
+    """SpeakerSessionQueryForm -- Session Speaker query inbound form message"""
+    sessionName = messages.StringField(1)
+
 class SpeakerQueryForm(messages.Message):
     """SpeakerQueryForm -- Speaker query inbound form message"""
     field = messages.StringField(1)
@@ -135,5 +139,74 @@ class SpeakerQueryForm(messages.Message):
     value = messages.StringField(3)
 
 class SpeakerQueryForms(messages.Message):
+    """SpeakerQueryForms -- multiple SpeakerQueryForm inbound form message"""
+    filters = messages.MessageField(SpeakerQueryForm, 1, repeated=True)
+
+class Session(ndb.Model):
+    """Session --- Session object"""
+    sessionName     = ndb.StringProperty(required=True)
+    description     = ndb.StringProperty()
+    webSafeConfKey  = ndb.StringProperty(required=True)
+    typeOfSession   = ndb.StringProperty(default='TBD')
+    speaker         = ndb.StringProperty(required=True)
+    speakerRole     = ndb.StringProperty(default='Speaker')
+    location        = ndb.StringProperty(required=True)
+    date            = ndb.DateProperty()
+    startTime       = ndb.TimeProperty()
+    duration        = ndb.IntegerProperty()
+
+class SessionForm(messages.Message):
+    sessionName = messages.StringField(1, required=True)
+    description = messages.StringField(2)
+    webSafeConfKey = messages.StringField(3, required=True)
+    typeOfSession = messages.EnumField('SessionType', 4)
+    speaker = messages.StringField(5, required=True)
+    speakerRole = messages.EnumField('SpeakerRole', 6)
+    location = messages.StringField(7, required=True)
+    date = messages.StringField(8) # Date: YYYY-MM-DD
+    startTime = messages.StringField(9) # Time: HH24:MI
+    duration = messages.IntegerField(10)
+
+class SessionType(messages.Enum):
+    """SessionType -- session type selection for a specific session"""
+    TBD = 1  # Session type to be determined
+    UNKNOWN = 2  # Session type exists but is unknown - similar to TBD
+    Workshop = 3
+    Case_Study = 4
+    Tutorial = 5
+    Talk = 6
+    Keynote = 7
+    Demonstration = 8
+    Panel = 9
+    Special = 10
+    Forum = 11
+
+class SessionSpeakerQueryForm(messages.Message):
+    """SessionSpeakerQueryForm -- Session Speaker query inbound form message"""
+    speakerName = messages.StringField(1, required=True)
+    location = messages.StringField(2, required=True)
+    date = messages.StringField(3) # Date: YYYY-MM-DD
+    startTime = messages.StringField(4) # Time: HH24:MI
+    duration = messages.IntegerField(5)
+
+class SessionSpeakerByDateLocationQueryForm(messages.Message):
+    """SessionSpeakerByDateLocationQueryForm -- Session Speaker query inbound form message"""
+    speakerName = messages.StringField(1)
+
+class SessionSessionTypeQueryForm(messages.Message):
+    """SessionSessionTypeQueryForm -- Session Speaker query inbound form message"""
+    typeOfSession = messages.EnumField('SessionType', 1)
+
+class SessionWishListQueryForm(messages.Message):
+    """SessionWishListQueryForm -- Session Speaker query inbound form message"""
+    sessionType = messages.StringField(1)
+
+class SessionQueryForm(messages.Message):
+    """SpeakerQueryForm -- Speaker query inbound form message"""
+    field = messages.StringField(1)
+    operator = messages.StringField(2)
+    value = messages.StringField(3)
+
+class SessionQueryForms(messages.Message):
     """SpeakerQueryForms -- multiple SpeakerQueryForm inbound form message"""
     filters = messages.MessageField(SpeakerQueryForm, 1, repeated=True)

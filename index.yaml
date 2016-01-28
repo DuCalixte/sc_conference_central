@@ -98,15 +98,42 @@ indexes:
 - kind: Speaker
   properties:
   - name: name
-  - name: role
-
-- kind: Speaker
-  properties:
-  - name: name
   - name: sessionsKeys
 
-- kind: Speaker
+- kind: Session
   properties:
-  - name: name
-  - name: role
-  - name: sessionsKeys
+  - name: webSafeConfKey
+  - name: typeOfSession
+  - name: speakerRole
+
+- kind: Session
+  properties:
+  - name: webSafeConfKey
+  - name: speaker
+
+- kind: Session
+  properties:
+  - name: typeOfSession
+  - name: startTime
+  - name: duration
+
+- kind: Session
+  properties:
+  - name: webSafeConfKey
+  - name: date
+  - name: duration
+
+- kind: Session
+  properties:
+  - name: location
+  - name: typeOfSession
+
+- kind: Session
+  properties:
+  - name: location
+  - name: speaker
+
+- kind: Session
+  properties:
+  - name: speaker
+  - name: typeOfSession

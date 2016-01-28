@@ -40,7 +40,19 @@ from models import Speaker
 from models import SpeakerForm
 from models import SpeakerQueryForm
 from models import SpeakerQueryForms
+from models import SpeakerSessionQueryForm
 from models import SpeakerRole
+
+
+from models import Session
+from models import SessionForm
+from models import SessionType
+from models import SessionSpeakerQueryForm
+from models import SessionSpeakerByDateLocationQueryForm
+from models import SessionSessionTypeQueryForm
+from models import SessionWishListQueryForm
+from models import SessionQueryForm
+from models import SessionQueryForms
 
 from settings import WEB_CLIENT_ID
 from settings import ANDROID_CLIENT_ID
@@ -52,6 +64,7 @@ from utils import getUserId
 EMAIL_SCOPE = endpoints.EMAIL_SCOPE
 API_EXPLORER_CLIENT_ID = endpoints.API_EXPLORER_CLIENT_ID
 MEMCACHE_ANNOUNCEMENTS_KEY = "RECENT_ANNOUNCEMENTS"
+MEMCACH_FEATURED_SPEAKER_KEY = "FEATURED_SPEAKER"
 ANNOUNCEMENT_TPL = ('Last chance to attend! The following conferences '
                     'are nearly sold out: %s')
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -85,6 +98,16 @@ CONF_GET_REQUEST = endpoints.ResourceContainer(
 )
 
 CONF_POST_REQUEST = endpoints.ResourceContainer(
+    ConferenceForm,
+    websafeConferenceKey=messages.StringField(1),
+)
+
+SESSION_GET_REQUEST = endpoints.ResourceContainer(
+    message_types.VoidMessage,
+    websafeConferenceKey=messages.StringField(1),
+)
+
+SESSION_POST_REQUEST = endpoints.ResourceContainer(
     ConferenceForm,
     websafeConferenceKey=messages.StringField(1),
 )
