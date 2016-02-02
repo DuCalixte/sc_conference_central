@@ -783,6 +783,9 @@ class ConferenceApi(remote.Service):
                 'No session found with key: %s' % request.key)
 
         wsck = session.key.parent.get()
+        if wsck.key.urlsafe() not in prof.conferenceKeysToAttend:
+            raise endpoints.ForbiddenException(
+                "You must register to the conference in order to add sessions to wishlist.")
 
         # add to session
         if addToSession:
