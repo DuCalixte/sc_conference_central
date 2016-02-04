@@ -38,10 +38,12 @@ from models import ConferenceQueryForms
 from models import TeeShirtSize
 from models import Speaker
 from models import SpeakerForm
+from models import SpeakerForms
 from models import SpeakerQueryForm
 from models import SpeakerQueryForms
 from models import SpeakerBySessionQueryForm
-from models import SpeakerRole
+from models import SpeakersByConferenceNameQueryForm
+from models import SpeakersByConferenceKeyQueryForm
 
 from models import Session
 from models import SessionForm
@@ -53,6 +55,7 @@ from models import SessionWishListQueryForm
 from models import SessionQueryForm
 from models import SessionQueryForms
 from models import SessionType
+from models import SessionRole
 
 from settings import WEB_CLIENT_ID
 from settings import ANDROID_CLIENT_ID
@@ -149,7 +152,7 @@ class ConferenceApi(remote.Service):
                     setattr(cf, field.name, str(getattr(conf, field.name)))
                 else:
                     setattr(cf, field.name, getattr(conf, field.name))
-            elif field.name == "websafeKey":
+            elif field.name == "websafeConferenceKey":
                 setattr(cf, field.name, conf.key.urlsafe())
         if displayName:
             setattr(cf, 'organizerDisplayName', displayName)
@@ -170,7 +173,7 @@ class ConferenceApi(remote.Service):
 
         # copy ConferenceForm/ProtoRPC Message into dict
         data = {field.name: getattr(request, field.name) for field in request.all_fields()}
-        del data['websafeKey']
+        del data['websafeConferenceKey']
         del data['organizerDisplayName']
 
         # add default values for those missing (both data model & outbound Message)
@@ -417,7 +420,6 @@ class ConferenceApi(remote.Service):
         """Get user Profile and return to user, possibly updating it first."""
         # get user Profile
         prof = self._getProfileFromUser()
-
         # if saveProfile(), process user-modifyable fields
         if save_request:
             for field in ('displayName', 'teeShirtSize'):
@@ -425,10 +427,10 @@ class ConferenceApi(remote.Service):
                     val = getattr(save_request, field)
                     if val:
                         setattr(prof, field, str(val))
-                        #if field == 'teeShirtSize':
-                        #    setattr(prof, field, str(val).upper())
-                        #else:
-                        #    setattr(prof, field, val)
+                        if field == 'teeShirtSize':
+                           setattr(prof, field, str(val).upper())
+                        else:
+                           setattr(prof, field, val)
                         prof.put()
 
         # return ProfileForm
@@ -620,7 +622,7 @@ class ConferenceApi(remote.Service):
 
 # - - - Speaker objects - - - - - - - - - - - - - - - - - - -
 
-    def _copyProfileToForm(self, speaker):
+    def _copySpeakerToForm(self, speaker):
         """Copy relevant fields from Profile to ProfileForm."""
         # copy relevant fields from Profile to ProfileForm
         spf = SpeakerForm()
@@ -659,6 +661,19 @@ class ConferenceApi(remote.Service):
         return self._addSpeakerObject(request)
 
 
+    @endpoints.method(SpeakerQueryForms, SpeakerForms,
+            path='querySpeakers',
+            http_method='POST',
+            name='querySpeakers')
+    def querySpeakers(self, request):
+        """Query for conferences."""
+        speakers = Speaker.query()
+
+        # return set of SpeakerForm objects
+        return SpeakerForms(
+            items=[self._copySpeakerToForm(speaker) for speaker in speakers]
+        )
+
 # - - - Session objects - - - - - - - - - - - - - - - - - - -
 
 
@@ -669,13 +684,13 @@ class ConferenceApi(remote.Service):
             if hasattr(session, field.name):
                 if field.name == 'typeOfSession':
                     setattr(session_form, field.name, getattr(SessionType, getattr(session, field.name)))
-                elif field.name == 'speakerRole':
-                    setattr(session_form, field.name, getattr(SpeakerRole, getattr(session, field.name)))
+                elif field.name == 'role':
+                    setattr(session_form, field.name, getattr(SessionRole, getattr(session, field.name)))
                 elif field.name in ['date', 'startTime']:
                     setattr(session_form, field.name, str(getattr(session, field.name)))
                 else:
                     setattr(session_form, field.name, getattr(session, field.name))
-            elif field.name == 'websafeKey':
+            elif field.name == 'webSafeKey':
                     setattr(session_form, field.name, session.key.urlsafe())
         return session_form
 
@@ -687,16 +702,16 @@ class ConferenceApi(remote.Service):
         user = endpoints.get_current_user()
         if not user:
             raise endpoints.UnauthorizedException('Authorization required')
-        user_id = getUserId(user)
+        # user_id = getUserId(user)
 
         if not request.sessionName:
-            raise endpoints.BadRequestException("Conference 'sessionName' field required")
+            raise endpoints.BadRequestException("Session 'sessionName' field required")
 
         if not request.webSafeConfKey:
-            raise endpoints.BadRequestException("Conference 'webSafeConfKey' field required")
+            raise endpoints.BadRequestException("Session 'webSafeKey' field required")
 
         if not request.speaker:
-            raise endpoints.BadRequestException("Conference 'speaker' field required")
+            raise endpoints.BadRequestException("Session 'speaker' field required")
 
         # copy ConferenceForm/ProtoRPC Message into dict
         data = {field.name: getattr(request, field.name) for field in request.all_fields()}
@@ -722,10 +737,10 @@ class ConferenceApi(remote.Service):
             data['typeOfSession'] = 'TBD'
 
         # Adjust session type enum field
-        if data['speakerRole']:
-            data['speakerRole'] = str(data['speakerRole'])
+        if data['role']:
+            data['role'] = str(data['role'])
         else:
-            data['speakerRole'] = 'Speaker'
+            data['role'] = 'Speaker'
 
         # use the Conference websafe key as parent key for the session
         p_key = ndb.Key(urlsafe=request.websafeConferenceKey)
@@ -740,7 +755,7 @@ class ConferenceApi(remote.Service):
         if not speaker:
             sessions = []
             sessions.append(s_key)
-            speaker = Speaker(name=data['speaker'], sessionKeys=sessions)
+            speaker = Speaker(name=data['speaker'], sessionKeys=[s_key])
             speaker.put()
         else:
             sessions = speaker.session_keys
@@ -774,7 +789,7 @@ class ConferenceApi(remote.Service):
 
         # check if conf exists given websafeConfKey
         # get conference; check that it exists
-        # wsck = ndb.Key(urlsafe=request.websafeConferenceKey).fetch()
+        wsck = ndb.Key(urlsafe=request.webSafeKey).fetch()
         # session = ndb.Key(urlsafe=wsck).get()
         session = ndb.key(urlsafe=request.key).get()
 
@@ -782,8 +797,7 @@ class ConferenceApi(remote.Service):
             raise endpoints.NotFoundException(
                 'No session found with key: %s' % request.key)
 
-        wsck = session.key.parent.get()
-        if wsck.key.urlsafe() not in prof.conferenceKeysToAttend:
+        if request.webSafeKey.urlsafe() not in prof.conferenceKeysToAttend:
             raise endpoints.ForbiddenException(
                 "You must register to the conference in order to add sessions to wishlist.")
 

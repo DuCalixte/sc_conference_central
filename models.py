@@ -75,7 +75,7 @@ class ConferenceForm(messages.Message):
     maxAttendees    = messages.IntegerField(8, variant=messages.Variant.INT32)
     seatsAvailable  = messages.IntegerField(9, variant=messages.Variant.INT32)
     endDate         = messages.StringField(10) #DateTimeField()
-    websafeKey      = messages.StringField(11)
+    websafeConferenceKey  = messages.StringField(11)
     organizerDisplayName = messages.StringField(12)
 
 class ConferenceForms(messages.Message):
@@ -125,15 +125,6 @@ class SpeakerForms(messages.Message):
     """SpeakerForms -- multiple Conference outbound form message"""
     items = messages.MessageField(SpeakerForm, 1, repeated=True)
 
-
-class SpeakerRole(messages.Enum):
-    """SpeakerRole -- speaker role enumeration value"""
-    NOT_SPECIFIED = 1
-    Speaker = 2
-    Host = 3
-    Keynote = 4
-    Presenter = 5
-
 class SpeakerQueryForm(messages.Message):
     """SpeakerQueryForm -- Speaker query inbound form message"""
     field = messages.StringField(1)
@@ -145,17 +136,25 @@ class SpeakerQueryForms(messages.Message):
     filters = messages.MessageField(SpeakerQueryForm, 1, repeated=True)
 
 class SpeakerBySessionQueryForm(messages.Message):
-    """SpeakerSessionQueryForm -- Session Speaker query inbound form message"""
-    sessionName = messages.StringField(1)
+    """SpeakerBySessionQueryForm -- Session Speaker query inbound form message"""
+    sessionName = messages.StringField(1, required=True)
+
+class SpeakersByConferenceNameQueryForm(messages.Message):
+    """SpeakersByConferenceNameQueryForm -- Session Speaker query inbound form message"""
+    conferenceName = messages.StringField(1, required=True)
+
+class SpeakersByConferenceKeyQueryForm(messages.Message):
+    """SpeakersByConferenceNameQueryForm -- Session Speaker query inbound form message"""
+    webSafeConferenceKey = messages.StringField(1, required=True)
 
 class Session(ndb.Model):
     """Session --- Session object"""
     sessionName     = ndb.StringProperty(required=True)
     description     = ndb.StringProperty()
-    webSafeConfKey  = ndb.StringProperty(required=True)
+    webSafeKey  = ndb.StringProperty(required=True)
     typeOfSession   = ndb.StringProperty(default='TBD')
     speaker         = ndb.StringProperty(required=True)
-    speakerRole     = ndb.StringProperty(default='Speaker')
+    role            = ndb.StringProperty(default='Speaker')
     location        = ndb.StringProperty()
     date            = ndb.DateProperty()
     startTime       = ndb.TimeProperty()
@@ -164,10 +163,10 @@ class Session(ndb.Model):
 class SessionForm(messages.Message):
     sessionName = messages.StringField(1, required=True)
     description = messages.StringField(2)
-    webSafeConfKey = messages.StringField(3, required=True)
+    webSafeKey = messages.StringField(3, required=True)
     typeOfSession = messages.EnumField('SessionType', 4)
     speaker = messages.StringField(5, required=True)
-    speakerRole = messages.EnumField('SpeakerRole', 6)
+    role = messages.EnumField('SessionRole', 6)
     location = messages.StringField(7)
     date = messages.StringField(8) # Date: YYYY-MM-DD
     startTime = messages.StringField(9) # Time: HH24:MI
@@ -191,6 +190,14 @@ class SessionType(messages.Enum):
     Panel = 9
     Special = 10
     Forum = 11
+
+class SessionRole(messages.Enum):
+    """SessionRole -- speaker role enumeration value"""
+    NOT_SPECIFIED = 1
+    Speaker = 2
+    Host = 3
+    Keynote = 4
+    Presenter = 5
 
 class SessionBySpeakerDateLocationQueryForm(messages.Message):
     """SessionBySpeakerDateLocationQueryForm -- Session Speaker query inbound form message"""

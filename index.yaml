@@ -102,13 +102,13 @@ indexes:
 
 - kind: Session
   properties:
-  - name: webSafeConfKey
+  - name: webSafeKey
   - name: typeOfSession
-  - name: speakerRole
+  - name: role
 
 - kind: Session
   properties:
-  - name: webSafeConfKey
+  - name: webSafeKey
   - name: speaker
 
 - kind: Session
@@ -119,7 +119,7 @@ indexes:
 
 - kind: Session
   properties:
-  - name: webSafeConfKey
+  - name: webSafeKey
   - name: date
   - name: duration
 
