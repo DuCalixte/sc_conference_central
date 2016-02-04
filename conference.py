@@ -707,7 +707,7 @@ class ConferenceApi(remote.Service):
         if not request.sessionName:
             raise endpoints.BadRequestException("Session 'sessionName' field required")
 
-        if not request.webSafeConfKey:
+        if not request.webSafeKey:
             raise endpoints.BadRequestException("Session 'webSafeKey' field required")
 
         if not request.speaker:
@@ -743,7 +743,7 @@ class ConferenceApi(remote.Service):
             data['role'] = 'Speaker'
 
         # use the Conference websafe key as parent key for the session
-        p_key = ndb.Key(urlsafe=request.websafeConferenceKey)
+        p_key = ndb.Key(urlsafe=request.webSafeKey)
         s_id = Session.allocate_ids(size=1, parent=p_key)[0]
         s_key = ndb.Key(Session, s_id, parent=p_key)
         data['key'] = s_key
@@ -769,7 +769,7 @@ class ConferenceApi(remote.Service):
         # create Session, check if speaker should be featured
         Session(**data).put()
         taskqueue.add(params={'speaker': data['speaker'],
-            'conferenceKey': request.websafeConferenceKey},
+            'conferenceKey': request.webSafeKey},
             url='/tasks/set_featured_speaker'
         )
 
