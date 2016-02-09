@@ -113,7 +113,7 @@ class ConferenceQueryForms(messages.Message):
 class Speaker(ndb.Model):
     """Speaker -- Speaker Object"""
     name            = ndb.StringProperty(required=True)
-    session_keys    = ndb.StringProperty(repeated=True)
+    session_keys    = ndb.KeyProperty(repeated=True)
 
 class SpeakerForm(messages.Message):
     """SpeakerForm -- Speaker outbound form message"""
@@ -151,26 +151,25 @@ class Session(ndb.Model):
     """Session --- Session object"""
     sessionName     = ndb.StringProperty(required=True)
     description     = ndb.StringProperty()
-    webSafeKey  = ndb.StringProperty(required=True)
+    webSafeKey      = ndb.StringProperty(required=True)
     typeOfSession   = ndb.StringProperty(default='TBD')
     speaker         = ndb.StringProperty(required=True)
     role            = ndb.StringProperty(default='Speaker')
     location        = ndb.StringProperty()
     date            = ndb.DateProperty()
     startTime       = ndb.TimeProperty()
-    duration        = ndb.IntegerProperty()
+    duration        = ndb.IntegerProperty(default=0)
 
 class SessionForm(messages.Message):
     sessionName = messages.StringField(1, required=True)
     description = messages.StringField(2)
-    webSafeKey = messages.StringField(3, required=True)
+    speaker = messages.StringField(3, required=True)
     typeOfSession = messages.EnumField('SessionType', 4)
-    speaker = messages.StringField(5, required=True)
-    role = messages.EnumField('SessionRole', 6)
-    location = messages.StringField(7)
-    date = messages.StringField(8) # Date: YYYY-MM-DD
-    startTime = messages.StringField(9) # Time: HH24:MI
-    duration = messages.IntegerField(10)
+    role = messages.EnumField('SessionRole', 5)
+    location = messages.StringField(6)
+    date = messages.StringField(7) # Date: YYYY-MM-DD
+    startTime = messages.StringField(8) # Time: HH24:MI
+    duration = messages.IntegerField(9)
 
 
 class SessionForms(messages.Message):

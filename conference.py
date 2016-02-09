@@ -642,13 +642,22 @@ class ConferenceApi(remote.Service):
         user = endpoints.get_current_user()
         if not user:
             raise endpoints.UnauthorizedException('Authorization required')
-        user_id = getUserId(user)
-
-        if not request.name:
-            raise endpoints.BadRequestException("Speaker 'name' field required")
 
         # copy ConferenceForm/ProtoRPC Message into dict
         data = {field.name: getattr(request, field.name) for field in request.all_fields()}
+
+        if not request.speaker:
+            raise endpoints.BadRequestException("Speaker 'speaker' field required")
+
+        data['name'] =request.speaker
+        del data['speaker']
+
+        if request.sessionName:
+            data['session_keys']=[]
+        else:
+            data['session_keys']=[]
+
+        del data['sessionName']
         Speaker(**data).put()
 
         return request
@@ -691,7 +700,7 @@ class ConferenceApi(remote.Service):
                 else:
                     setattr(session_form, field.name, getattr(session, field.name))
             elif field.name == 'webSafeKey':
-                    setattr(session_form, field.name, session.key.urlsafe())
+                setattr(session_form, field.name, session.key.urlsafe())
         return session_form
 
 
@@ -707,8 +716,8 @@ class ConferenceApi(remote.Service):
         if not request.sessionName:
             raise endpoints.BadRequestException("Session 'sessionName' field required")
 
-        if not request.webSafeKey:
-            raise endpoints.BadRequestException("Session 'webSafeKey' field required")
+        # if not request.webSafeKey:
+        #     raise endpoints.BadRequestException("Session 'webSafeKey' field required")
 
         if not request.speaker:
             raise endpoints.BadRequestException("Session 'speaker' field required")
@@ -716,19 +725,17 @@ class ConferenceApi(remote.Service):
         # copy ConferenceForm/ProtoRPC Message into dict
         data = {field.name: getattr(request, field.name) for field in request.all_fields()}
 
-        # add default values for those missing (both data model & outbound Message)
-        for df in DEFAULTS:
-            if data[df] in (None, []):
-                data[df] = DEFAULTS[df]
-                setattr(request, df, DEFAULTS[df])
-
         # convert dates from strings to Date objects; set month based on start_date
         if data['date']:
             data['date'] = datetime.strptime(data['date'][:10], "%Y-%m-%d").date()
+        else:
+            data['date'] = None
 
         # convert dates from strings to Date objects; set month based on start_date
         if data['startTime']:
             data['startTime'] = datetime.strptime(data['startTime'][:10], "%H:%M").time()
+        else:
+            data['startTime'] = None
 
         # Adjust session type enum field
         if data['typeOfSession']:
@@ -736,14 +743,18 @@ class ConferenceApi(remote.Service):
         else:
             data['typeOfSession'] = 'TBD'
 
-        # Adjust session type enum field
+        # # Adjust session type enum field
         if data['role']:
             data['role'] = str(data['role'])
         else:
             data['role'] = 'Speaker'
 
+        # if not data['duration']:
+        #     data['duration'] = 0
+
         # use the Conference websafe key as parent key for the session
-        p_key = ndb.Key(urlsafe=request.webSafeKey)
+        data['webSafeKey'] = request.websafeConferenceKey
+        p_key = ndb.Key(urlsafe=request.websafeConferenceKey)
         s_id = Session.allocate_ids(size=1, parent=p_key)[0]
         s_key = ndb.Key(Session, s_id, parent=p_key)
         data['key'] = s_key
@@ -753,23 +764,22 @@ class ConferenceApi(remote.Service):
         speaker = speaker_key.get()
         # create new Speaker if not there
         if not speaker:
-            sessions = []
-            sessions.append(s_key)
-            speaker = Speaker(name=data['speaker'], sessionKeys=[s_key])
+            speaker = Speaker(name=data['speaker'], session_keys=[s_key])
             speaker.put()
         else:
-            sessions = speaker.session_keys
-            if s_key in sessions:
+            keys = speaker.session_keys
+            if s_key in keys:
                 raise "Speaker has been added to session previously"
             else:
-                sessions.append(s_key)
-                speaker.session_keys = sessions
-                speaker.put
+                keys.append(s_key)
+                speaker.session_keys = keys
+                speaker.put()
 
+        del data['websafeConferenceKey']
         # create Session, check if speaker should be featured
         Session(**data).put()
         taskqueue.add(params={'speaker': data['speaker'],
-            'conferenceKey': request.webSafeKey},
+            'conferenceKey': request.websafeConferenceKey},
             url='/tasks/set_featured_speaker'
         )
 
@@ -827,22 +837,31 @@ class ConferenceApi(remote.Service):
 
 
     @endpoints.method(SESSION_POST_REQUEST, BooleanMessage,
-        path='{websafeConferenceKey}/createSession',
-            http_method='POST', name='createSession')
+        path='conference/{websafeConferenceKey}/createSession',
+        http_method='POST', name='createSession')
     def createSession(self, request):
         """Create new session in a conference."""
         return self._createSessionObject(request)
 
     @endpoints.method(CONF_GET_REQUEST, SessionForms,
-            path='conference/{websafeConferenceKey}/sessions',
-            http_method='POST', name='getConferenceSessions')
+            path='conference/{websafeConferenceKey}/getConferenceSessions',
+            http_method='GET', name='getConferenceSessions')
     def getConferenceSessions(self, request):
         """Return all sessions in a given conference."""
 
         # create ancestor query for all sessions for this Conference
-        conf_key = ndb.Key(urlsafe=request.websafeConferenceKey).fetch()
-        sessions = Session.query(ancestor=conf_key)
+        # conf = ndb.Key(urlsafe=request.websafeConferenceKey).get()
+        # sessions = Session.query(ancestor=conf.key)
+        # _sessions = Session.query(ndb.key(parent=request.websafeConferenceKey)).fetch()
+        # _sessions = Session.query(Session.parent==request.websafeConferenceKey).fetch()
+        # if not request.websafeConferenceKey:
+        #     raise endpoints.ForbiddenException(
+        #         "no sessions found.")
 
+        # _sessions = Session.query(ancestor=ndb.Key(Conference, urlsafe=request.websafeConferenceKey))
+        _sessions = Session.query(ancestor=ndb.Key(Conference, request.websafeConferenceKey)).fetch()
+
+        sessions = [Session(sessionName='hi', speaker='Julio7', webSafeKey='slols', duration=len(_sessions), description='yes')]
         # return set of SessionForm objects
         return SessionForms(
             items=[self._copySessionToForm(session) for session in sessions]
@@ -856,10 +875,14 @@ class ConferenceApi(remote.Service):
 
         # query sessions by speaker name
         sessions = Session.query(Session.speaker==request.speakerName).fetch()
+        if not sessions:
+            raise endpoints.ForbiddenException(
+                "no sessions found.")
         # return set of SessionForm objects
         return SessionForms(
             items=[self._copySessionToForm(session) for session in sessions]
         )
+        # return Session(sessionName='hi', speaker='Julio7', webSafeKey='uncle')
 
     @endpoints.method(SESSION_TYPE_GET_REQUEST, SessionForms,
             path='conference/{websafeConferenceKey}/sessionsByType',
