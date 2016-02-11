@@ -40,7 +40,6 @@ class ProfileForm(messages.Message):
     mainEmail = messages.StringField(2)
     teeShirtSize = messages.EnumField('TeeShirtSize', 3)
     conferenceKeysToAttend = messages.StringField(4, repeated=True)
-    sessionWishList = messages.StringField(5, repeated=True)
 
 class StringMessage(messages.Message):
     """StringMessage-- outbound (single) string message"""
@@ -213,10 +212,6 @@ class SessionBySpeakerQueryForm (messages.Message):
 class SessionBySessionTypeQueryForm(messages.Message):
     """SessionBySessionTypeQueryForm -- Session Speaker query inbound form message"""
     typeOfSession = messages.EnumField('SessionType', 1)
-
-class SessionWishListQueryForm(messages.Message):
-    """SessionWishListQueryForm -- Session Speaker query inbound form message"""
-    sessionType = messages.StringField(1)
 
 class QuerySessionsToWishlistForm(messages.Message):
     """SessionWishListQueryForm -- Session Speaker query inbound form message"""

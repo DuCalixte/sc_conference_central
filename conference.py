@@ -51,7 +51,6 @@ from models import SessionForms
 from models import SessionBySpeakerQueryForm
 from models import SessionBySpeakerDateLocationQueryForm
 from models import SessionBySessionTypeQueryForm
-from models import SessionWishListQueryForm
 from models import QuerySessionsToWishlistForm
 from models import SessionWishListForm
 from models import SessionQueryForm
@@ -119,8 +118,13 @@ SESSION_POST_REQUEST = endpoints.ResourceContainer(
     websafeConferenceKey=messages.StringField(1),
 )
 
-SESSION_WISHLIST_PUT_REQUEST = endpoints.ResourceContainer(
+SESSION_WISHLIST_REQUEST = endpoints.ResourceContainer(
     QuerySessionsToWishlistForm,
+    websafeConferenceKey=messages.StringField(1),
+)
+
+SESSION_GET_WISHLIST_REQUEST = endpoints.ResourceContainer(
+    SessionWishListForm,
     websafeConferenceKey=messages.StringField(1),
 )
 
@@ -417,7 +421,12 @@ class ConferenceApi(remote.Service):
                 displayName = user.nickname(),
                 mainEmail= user.email(),
                 teeShirtSize = str(TeeShirtSize.NOT_SPECIFIED),
+                sessionWishList = [],
             )
+            profile.put()
+
+        if not profile.sessionWishList:
+            profile.sessionWishList = []
             profile.put()
 
         return profile      # return Profile
@@ -799,42 +808,50 @@ class ConferenceApi(remote.Service):
         retval = False
         prof = self._getProfileFromUser() # get user Profile
 
-        # check if conf exists given websafeConfKey
-        # get conference; check that it exists
-        # wsck = ndb.Key(urlsafe=request.websafeConferenceKey).fetch()
-        # # session = ndb.Key(urlsafe=wsck).get()
-        # session = ndb.key(urlsafe=request.key).get()
-        #
-        # if not session:
-        #     raise endpoints.NotFoundException(
-        #         'No session found with key: %s' % request.key)
-        #
-        # if request.webSafeKey.urlsafe() not in prof.conferenceKeysToAttend:
-        #     raise endpoints.ForbiddenException(
-        #         "You must register to the conference in order to add sessions to wishlist.")
-        #
-        # # add to session
-        # if addToSession:
-        #     # check if session is already in wishlist
-        #     if request.key in prof.sessionsWishlist:
-        #         raise ConflictException(
-        #             "You already have this session in your wishlist")
-        #
-        #     # register user, take away one seat
-        #     prof.sessionsWishlist.append(request.key)
-        #     retval = True
-        #
-        # # unregister
-        # else:
-        #     # check if session exists in wishlist, and remove it
-        #     if wsck in prof.sessionsWishlist:
-        #         prof.sessionsWishlist.remove(wsck)
-        #         retval = True
-        #     else:
-        #         retval = False
-        #
-        # # write things back to the datastore & return
-        # prof.put()
+        if request.websafeConferenceKey not in prof.conferenceKeysToAttend:
+            raise endpoints.ForbiddenException(
+                "You must register to the conference in order to add sessions to wishlist.")
+
+        if not request.session:
+            raise endpoints.ForbiddenException(
+                "You must provide a 'sessionName' for the query.")
+
+        sessions = Session.query(ancestor=ndb.Key(urlsafe=request.websafeConferenceKey))
+
+        sessions = sessions.filter(Session.sessionName == request.session)
+
+        if request.speaker:
+            sessions = sessions.filter(Session.speaker == request.speaker)
+
+        if not sessions:
+            raise endpoints.NotFoundException(
+                'No sessions found to add to wishlist')
+
+        key = sessions.fetch()[0].key
+
+        # add to session
+        if addToSession:
+            # check if session is already in wishlist
+            if key in prof.sessionWishList:
+                raise ConflictException(
+                    "You already have this session in your wishlist")
+
+            # register user, take away one seat
+            prof.sessionWishList.append(key)
+            retval = True
+
+        # unregister
+        else:
+            # check if session exists in wishlist, and remove it
+            if key in prof.sessionWishList:
+                prof.sessionWishList.remove(key)
+                retval = True
+            else:
+                retval = False
+
+        # write things back to the datastore & return
+        prof.put()
+
         return BooleanMessage(data=retval)
 
 
@@ -852,10 +869,7 @@ class ConferenceApi(remote.Service):
     def getConferenceSessions(self, request):
         """Return all sessions in a given conference."""
 
-        # sessions = Session.query(Session.webSafeKey==request.websafeConferenceKey)
         sessions = Session.query(ancestor=ndb.Key(urlsafe=request.websafeConferenceKey)).fetch()
-        # sessions = Session.query(ancestor=ndb.Key(Conference, request.websafeConferenceKey)).fetch()
-        # sessions = [Session(sessionName='hi', speaker='Julio7', webSafeKey='slols', duration=len(_sessions), description='yes')]
 
         # return set of SessionForm objects
         return SessionForms(
@@ -874,6 +888,7 @@ class ConferenceApi(remote.Service):
         if not sessions:
             raise endpoints.ForbiddenException(
                 "no sessions found.")
+
         # return set of SessionForm objects
         return SessionForms(
             items=[self._copySessionToForm(session) for session in sessions]
@@ -894,7 +909,7 @@ class ConferenceApi(remote.Service):
         )
 
 
-    @endpoints.method(SESSION_WISHLIST_PUT_REQUEST, BooleanMessage,
+    @endpoints.method(SESSION_WISHLIST_REQUEST, BooleanMessage,
         path='conference/{websafeConferenceKey}/sessionWishlist',
         http_method='PUT', name='addSessionToWishlist')
     def addSessionToWishlist(self, request):
@@ -902,22 +917,25 @@ class ConferenceApi(remote.Service):
         return self._manageSessionsWishlist(request)
 
 
-    @endpoints.method(SESSION_GET_REQUEST, BooleanMessage,
-        path='sessionWishlist/{websafeConferenceKey}',
+    @endpoints.method(SESSION_WISHLIST_REQUEST, BooleanMessage,
+        path='conference/{websafeConferenceKey}/deleteSessionInWishlist',
         http_method='DELETE', name='deleteSessionInWishlist')
     def deleteSessionInWishlist(self, request):
         """Remove Session from User wishlist."""
-        return self._manageSessionsWishlist(request, addToSession=False)
+        return self._manageSessionsWishlist(request,False)
 
 
-    @endpoints.method(message_types.VoidMessage, SessionWishListQueryForm,
+    @endpoints.method(message_types.VoidMessage, SessionForms,
         path='getSessionsInWishlist',
         http_method='GET', name='getSessionsInWishlist')
-    def getSessionInWishlist(self, request):
+    def getSessionInWishlist(self, request=None):
         """Get sessions in User wishlist."""
         prof = self._getProfileFromUser() # get user Profile
-        return SessionWishListQueryForm(
-            sessionWishlist=prof.sessionWishlist)
+
+        keys = prof.sessionWishList
+        return SessionForms(
+            items=[self._copySessionToForm(Session.query(Session.key == key).get()) for key in keys]
+        )
 
 
     @endpoints.method(SessionBySpeakerDateLocationQueryForm, SessionForms,
@@ -928,7 +946,6 @@ class ConferenceApi(remote.Service):
 
         sessions = Session.query()
         # filter by speaker name and date range
-        sessions = sessions.filter(Session.speaker == request.speakerName)
         sessions = sessions.filter(Session.location == request.location)
         sessions = sessions.filter(Session.date >= datetime.strptime(request.startDate, "%Y-%m-%d").date())
         sessions = sessions.filter(Session.date <= datetime.strptime(request.endDate, "%Y-%m-%d").date())
