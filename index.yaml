@@ -101,39 +101,83 @@ indexes:
   - name: sessionsKeys
 
 - kind: Session
+  ancestor: yes
   properties:
-  - name: webSafeKey
+  - name: speaker
+
+- kind: Session
+  ancestor: yes
+  properties:
+  - name: location
+
+- kind: Session
+  ancestor: yes
+  properties:
+  - name: role
+
+- kind: Session
+  ancestor: yes
+  properties:
+  - name: typeOfSession
+
+- kind: Session
+  ancestor: yes
+  properties:
+  - name: speaker
+  - name: location
+
+- kind: Session
+  ancestor: yes
+  properties:
+  - name: speaker
+  - name: date
+
+- kind: Session
+  ancestor: yes
+  properties:
+  - name: speaker
+  - name: typeOfSession
+
+- kind: Session
+  ancestor: yes
+  properties:
+  - name: location
+  - name: date
+
+- kind: Session
+  ancestor: yes
+  properties:
+  - name: location
+  - name: typeOfSession
+
+- kind: Session
+  ancestor: yes
+  properties:
   - name: typeOfSession
   - name: role
 
 - kind: Session
-  properties:
-  - name: webSafeKey
-  - name: speaker
-
-- kind: Session
+  ancestor: yes
   properties:
   - name: typeOfSession
-  - name: startTime
-  - name: duration
+  - name: date
 
 - kind: Session
+  ancestor: yes
   properties:
-  - name: webSafeKey
   - name: date
   - name: duration
 
 - kind: Session
-  properties:
-  - name: location
-  - name: typeOfSession
-
-- kind: Session
-  properties:
-  - name: location
-  - name: speaker
-
-- kind: Session
+  ancestor: yes
   properties:
   - name: speaker
   - name: typeOfSession
+  - name: date
+
+- kind: Session
+  ancestor: yes
+  properties:
+  - name: location
+  - name: typeOfSession
+  - name: date

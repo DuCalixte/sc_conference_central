@@ -127,6 +127,7 @@ class Speaker(ndb.Model):
     name = ndb.StringProperty(required=True)
     session_keys = ndb.KeyProperty(repeated=True)
 
+
 class AddSpeakerForm(messages.Message):
     """SpeakerForm -- Speaker outbound form message"""
     speaker = messages.StringField(1)
@@ -135,12 +136,6 @@ class AddSpeakerForm(messages.Message):
 
 class SpeakerForm(messages.Message):
     """SpeakerForm -- Speaker outbound form message"""
-    speaker = messages.StringField(1)
-    sessionNames = messages.StringField(2, repeated=True)
-
-
-class FeaturedSpeakerForm(messages.Message):
-    """FeaturedSpeakerForm -- Speaker outbound form message"""
     speaker = messages.StringField(1)
     sessionNames = messages.StringField(2, repeated=True)
 
@@ -160,21 +155,6 @@ class SpeakerQueryForm(messages.Message):
 class SpeakerQueryForms(messages.Message):
     """SpeakerQueryForms -- multiple SpeakerQueryForm inbound form message"""
     filters = messages.MessageField(SpeakerQueryForm, 1, repeated=True)
-
-
-class SpeakerBySessionQueryForm(messages.Message):
-    """SpeakerBySessionQueryForm -- Session Speaker query inbound form message"""
-    sessionName = messages.StringField(1, required=True)
-
-
-class SpeakersByConferenceNameQueryForm(messages.Message):
-    """SpeakersByConferenceNameQueryForm -- Session Speaker query inbound form message"""
-    conferenceName = messages.StringField(1, required=True)
-
-
-class SpeakersByConferenceKeyQueryForm(messages.Message):
-    """SpeakersByConferenceNameQueryForm -- Session Speaker query inbound form message"""
-    webSafeConferenceKey = messages.StringField(1, required=True)
 
 
 class Session(ndb.Model):
@@ -232,23 +212,42 @@ class SessionRole(messages.Enum):
     Presenter = 5
 
 
-class SessionBySpeakerDateLocationQueryForm(messages.Message):
-    """SessionBySpeakerDateLocationQueryForm -- Session Speaker query inbound form message"""
-    speakerName = messages.StringField(1, required=True)
-    location = messages.StringField(2, required=True)
-    date = messages.StringField(3)  # Date: YYYY-MM-DD
-    startTime = messages.StringField(4)  # Time: HH24:MI
-    duration = messages.IntegerField(5)
+class SessionLocationTypeOfSessionDateQueryForm(messages.Message):
+    """SessionLocationTypeOfSessionDateQueryForm -- Find sessions by location, type of session and date by query inbound form message"""
+    sessionLocation = messages.StringField(1, required=True)
+    typeOfSession = messages.EnumField('SessionType', 2, required=True)
+    sessionDate = messages.StringField(3, required=True)  # Date: YYYY-MM-DD
+
+
+class SessionLocationTypeOfSessionQueryForm(messages.Message):
+    """SessionLocationTypeOfSessionQueryForm -- Find sessions by location, type of session and date by query inbound form message"""
+    sessionLocation = messages.StringField(1, required=True)
+    typeOfSession = messages.EnumField('SessionType', 2, required=True)
 
 
 class SessionBySpeakerQueryForm (messages.Message):
     """SessionBySpeakerQueryForm -- Session Speaker query inbound form message"""
-    speakerName = messages.StringField(1)
+    speakerName = messages.StringField(1, required=True)
 
 
 class SessionBySessionTypeQueryForm(messages.Message):
     """SessionBySessionTypeQueryForm -- Session Speaker query inbound form message"""
-    typeOfSession = messages.EnumField('SessionType', 1)
+    typeOfSession = messages.EnumField('SessionType', 1, required=True)
+
+
+class SessionBySpeakerRoleForm(messages.Message):
+    """SessionBySessionTypeQueryForm -- Session Speaker query inbound form message"""
+    speakerRole = messages.EnumField('SessionRole', 1, required=True)
+
+
+class SessionByLocationQueryForm (messages.Message):
+    """SessionBySpeakerQueryForm -- Session Speaker query inbound form message"""
+    sessionLocation = messages.StringField(1, required=True)
+
+
+class SessionByDateQueryForm (messages.Message):
+    """SessionByDateQueryForm -- Conference query inbound form message"""
+    sessionDate = messages.StringField(1, required=True)
 
 
 class QuerySessionsToWishlistForm(messages.Message):
