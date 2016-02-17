@@ -1161,7 +1161,7 @@ class ConferenceApi(remote.Service):
                       path='conference/{websafeConferenceKey}/sessionWishlist',
                       http_method='PUT', name='addSessionToWishlist')
     def addSessionToWishlist(self, request):
-        """Add Session to User wishlist."""
+        """addSessionToWishlist -- Adds the session to the user's list of sessions they are interested in attending."""
         return self._manageSessionsWishlist(request)
 
     @endpoints.method(
@@ -1171,7 +1171,7 @@ class ConferenceApi(remote.Service):
         http_method='PUT',
         name='deleteSessionFromWishlist')
     def deleteSessionFromWishlist(self, request):
-        """Delete Session from User wishlist."""
+        """deleteSessionFromWishlist -- Deletes the session from the user's list of sessions expected to attend.."""
         return self._manageSessionsWishlist(request, False)
 
     @endpoints.method(
@@ -1181,7 +1181,7 @@ class ConferenceApi(remote.Service):
         http_method='POST',
         name='getSessionsInWishlist')
     def getSessionsInWishlist(self, request):
-        """Get sessions in User wishlist."""
+        """getSessionsInWishlist -- Returns all the sessions in a conference that the user is interested in."""
         prof = self._getProfileFromUser()  # get user Profile
 
         keys = prof.sessionWishList

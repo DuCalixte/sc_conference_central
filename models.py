@@ -160,7 +160,7 @@ class SpeakerQueryForms(messages.Message):
 class Session(ndb.Model):
     """Session --- Session object"""
     sessionName = ndb.StringProperty(required=True)
-    description = ndb.StringProperty()
+    highlights = ndb.StringProperty()
     webSafeKey = ndb.StringProperty(required=True)
     typeOfSession = ndb.StringProperty(default='TBD')
     speaker = ndb.StringProperty(required=True)
@@ -173,7 +173,7 @@ class Session(ndb.Model):
 
 class SessionForm(messages.Message):
     sessionName = messages.StringField(1, required=True)
-    description = messages.StringField(2)
+    highlights = messages.StringField(2)
     speaker = messages.StringField(3, required=True)
     typeOfSession = messages.EnumField('SessionType', 4)
     role = messages.EnumField('SessionRole', 5)
