@@ -581,23 +581,16 @@ class ConferenceApi(remote.Service):
 
     @endpoints.method(SPEAKER_GET_REQUEST, SpeakerForm,
                       path='showfeaturedSpeaker',
-                      http_method='POST', name='getFeaturedSpeaker')
+                      http_method='GET', name='getFeaturedSpeaker')
     def getFeaturedSpeaker(self, request):
         """getFeaturedSpeaker -- Returns featured speaker from memcache."""
-        try:
-            data = memcache.get(MEMCACHE_FEATURED_SPEAKER_KEY)
-        except:
-            # raise endpoints.UnauthorizedException('Bad Session')
-            raise endpoints.UnauthorizedException(
-                'Bad Session %s' % sys.exc_info()[0])
+        data = memcache.get(MEMCACHE_FEATURED_SPEAKER_KEY)
 
-        # data = memcache.get(MEMCACHE_FEATURED_SPEAKER_KEY)
         speaker_form = SpeakerForm()
         if data is not None:
-            raise endpoints.UnauthorizedException('Bad Session %s' % data)
-            # logging.info('showing information for data %s:' % data)
-            # setattr(speaker_form, 'speaker', data['speaker'])
-            # setattr(speaker_form, 'sessionNames', data['sessionNames'])
+            logging.info('showing information for data %s:' % data)
+            setattr(speaker_form, 'speaker', data['speaker'])
+            setattr(speaker_form, 'sessionNames', data['sessionNames'])
         else:
             logging.warning('No information has been cached.')
             setattr(speaker_form, 'speaker', 'No Featured Speaker')
