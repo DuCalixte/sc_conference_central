@@ -583,7 +583,7 @@ class ConferenceApi(remote.Service):
                       path='showfeaturedSpeaker',
                       http_method='POST', name='getFeaturedSpeaker')
     def getFeaturedSpeaker(self, request):
-        """Return featured speaker from memcache."""
+        """getFeaturedSpeaker -- Returns featured speaker from memcache."""
         try:
             data = memcache.get(MEMCACHE_FEATURED_SPEAKER_KEY)
         except:
@@ -732,6 +732,7 @@ class ConferenceApi(remote.Service):
 
     def _addSpeakerObject(self, request, data=None):
         """
+        addSpeaker -- Adding a speaker to Conference Central App
         :param request: The sequence of object parameters to create a Speaker object
         :return: object contents
         """
@@ -788,7 +789,7 @@ class ConferenceApi(remote.Service):
                       http_method='POST',
                       name='querySpeakers')
     def querySpeakers(self, request):
-        """Query for conferences."""
+        """querySpeakers -- Implements Custom Queries for speakers."""
         speakers = Speaker.query()
 
         # return set of SpeakerForm objects
@@ -1003,7 +1004,7 @@ class ConferenceApi(remote.Service):
                       path='conference/{websafeConferenceKey}/createSession',
                       http_method='POST', name='createSession')
     def createSession(self, request):
-        """Create new session in a conference."""
+        """createSession -- Creates new session in a conference."""
         return self._createSessionObject(request)
 
     @endpoints.method(
@@ -1013,7 +1014,7 @@ class ConferenceApi(remote.Service):
         http_method='GET',
         name='getConferenceSessions')
     def getConferenceSessions(self, request):
-        """Return all sessions in a given conference."""
+        """getConferenceSessions -- Returns all sessions in a given conference."""
 
         sessions = Session.query(ancestor=ndb.Key(
             urlsafe=request.websafeConferenceKey)).fetch()
@@ -1030,7 +1031,7 @@ class ConferenceApi(remote.Service):
         http_method='POST',
         name='getSessionsBySpeaker')
     def getSessionsBySpeaker(self, request):
-        """Return all sessions from a given speaker."""
+        """getSessionsBySpeaker -- Returns all sessions from a given speaker."""
 
         # query sessions by speaker name in the conference
         sessions = Session.query(ancestor=ndb.Key(
@@ -1052,7 +1053,7 @@ class ConferenceApi(remote.Service):
         http_method='POST',
         name='getConferenceSessionsByType')
     def getConferenceSessionsByType(self, request):
-        """Return all sessions in a given conference, given a specific type."""
+        """getConferenceSessionsByType -- Returns all sessions in a given conference, given a specific type."""
 
         sessions = Session.query(ancestor=ndb.Key(
             urlsafe=request.websafeConferenceKey)).filter(
@@ -1070,7 +1071,7 @@ class ConferenceApi(remote.Service):
         http_method='POST',
         name='getConferenceSessionsBySpeakerRole')
     def getConferenceSessionsBySpeakerRole(self, request):
-        """Return all sessions in a given conference, given a specific type."""
+        """getConferenceSessionsBySpeakerRole -- Returns all sessions in a given conference, given a specific type."""
 
         sessions = Session.query(ancestor=ndb.Key(
             urlsafe=request.websafeConferenceKey)).filter(
@@ -1161,7 +1162,7 @@ class ConferenceApi(remote.Service):
                       path='conference/{websafeConferenceKey}/sessionWishlist',
                       http_method='PUT', name='addSessionToWishlist')
     def addSessionToWishlist(self, request):
-        """addSessionToWishlist -- Adds the session to the user's list of sessions they are interested in attending."""
+        """addSessionToWishlist -- Adding the session to the user's list of sessions they are interested in attending."""
         return self._manageSessionsWishlist(request)
 
     @endpoints.method(
@@ -1171,7 +1172,7 @@ class ConferenceApi(remote.Service):
         http_method='PUT',
         name='deleteSessionFromWishlist')
     def deleteSessionFromWishlist(self, request):
-        """deleteSessionFromWishlist -- Deletes the session from the user's list of sessions expected to attend.."""
+        """deleteSessionFromWishlist -- Deletes the session from the user's list of sessions expected to attend."""
         return self._manageSessionsWishlist(request, False)
 
     @endpoints.method(
@@ -1198,7 +1199,7 @@ class ConferenceApi(remote.Service):
                       path='getAllSessionsInWishlist',
                       http_method='GET', name='getAllSessionsInWishlist')
     def getAllSessionsInWishlist(self, request=None):
-        """Get sessions in User wishlist."""
+        """getAllSessionsInWishlist -- Queries for all the sessions in a conference that the user is interested in."""
         prof = self._getProfileFromUser()  # get user Profile
 
         keys = prof.sessionWishList

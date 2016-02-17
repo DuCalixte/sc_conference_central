@@ -91,7 +91,7 @@ A user can add, retrieve and delete session to a wishlist of sessions to attend.
 The following API methoods were defined to support Session Whishlist
 
 1. ***addSessionToWishlist(SessionKey)***
-    - adds the session to the user's list of sessions they are interested in attending.
+    - adding the session to the user's list of sessions they are interested in attending.
 1. ***deleteSessionFromWishlist(SessionKey)***
     - deletes the session from the user's list of sessions expected to attend.
 1. ***getSessionsInWishlist()***
@@ -136,7 +136,29 @@ As such the following single Endpoint is defined:
     - returns the featured speaker, if any.
 
 
+
 ## Additional Endpoints
+
+####These the endpoints implemented in this project:
+
+* addSessionToWishlist	                    -- *Adding the session to the user's list of sessions they are interested in attending.*
+* addSpeaker                                -- *Adding a speaker to Conference Central App*
+* createSession                             -- *Creates new session in a conference.*
+* deleteSessionFromWishlist                 -- *Deletes the session from the user's list of sessions expected to attend.*
+* getAllSessionsInWishlist	                -- *Queries for all the sessions in a conference that the user is interested in.*
+* getAllSpeakers	                        -- *Returns all speakers across all conferences and sessions.*
+* getConferenceSessions	                    -- *Returns all sessions in a given conference.*
+* getConferenceSessionsByDate	            -- *Returns all sessions in a given conference, provided a date.
+* getConferenceSessionsByLocation	        -- *Returns all sessions in a given conference, given a location.*
+* getConferenceSessionsByLocationType	    -- *Returns all sessions in a given conference, given a combination of session type and location.*
+* getConferenceSessionsByLocationTypeDate	-- *Returns all sessions in a given conference, given a combination of session type, location and date.*
+* getConferenceSessionsBySpeakerRole	    -- *Returns all sessions in a given conference, given a specific type.*
+* getConferenceSessionsByType	            -- *Returns all sessions in a given conference, given a specific type.
+* getFeaturedSpeaker	                    -- *Returns featured speaker from memcache.*
+* getSessionsBySpeaker	                    -- *Returns all sessions from a given speaker.*
+* getSessionsInWishlist	                    -- *Returns all the sessions in a conference that the user is interested in.*
+* querySpeakers                             -- *Implements Custom Queries for speakers.*
+
 
 
 
@@ -146,4 +168,4 @@ As such the following single Endpoint is defined:
 [4]: https://console.developers.google.com/
 [5]: https://localhost:8080/
 [6]: https://developers.google.com/appengine/docs/python/endpoints/endpoints_tool
-[7]: https
+[7]: https://apis-explorer.appspot.com/apis-explorer/?base=https://winged-comfort-119815.appspot.com/_ah/api#p/conference/v1/
