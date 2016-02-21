@@ -23,10 +23,10 @@ This project is hosted on a cloud-based hosting platform - Google App Engine. It
 
 ## Table of contents
 
-- [Setup Instructions](#setup_instructions)
-- [Design Choices](#design_choices)
-- [Implemented Tasks](#implementedtasks)
-- [Additional Endpoints](#additionalendpoints)
+- [Setup Instructions](#setup-instructions)
+- [Design Choices](#design-choices)
+- [Implemented Tasks](#implemented-tasks)
+- [Additional Endpoints](#additional-endpoints)
 
 
 
