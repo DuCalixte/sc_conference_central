@@ -24,6 +24,7 @@ This project is hosted on a cloud-based hosting platform - Google App Engine. It
 ## Table of contents
 
 - [Setup Instructions](#setupinstructions)
+- [Design Choices](#designchoices)
 - [Implemented Tasks](#implementedtasks)
 - [Additional Endpoints](#additionaledendpoints)
 
@@ -44,6 +45,84 @@ This project is hosted on a cloud-based hosting platform - Google App Engine. It
 1. Open the Google app engine launcher, choose File > Add Existing Application, and then browse the files, add this application. After this, run this application after deploying it.
 1. You can also visit the [google api explorer][7] to test all the endpoints.
 1. Deploy your application.
+
+
+
+
+## Design Choices:
+
+My core *Design Choices*: ***Conference Central*** is responsible for maintaining **Conferences**, **Profile**, **Sessions** and **Speakers**. **Sessions** belong to **Conferences** while **Speakers** are parallel entity that can  be assigned to any **Sessions** across **Conferences**. In addition a registed user to a conference can *add or deleted* **Sessions** to his or her wishlist.
+
+
+### Task 1:
+
+In **Task 1**, the objectives were to implement a **Session** entity along with various endpoints methods.
+
+A **Session** can have speakers, a starting time, a date of occurrence, and a duration alongn with highlights. I have chosen to implement a **Session** that belongs to a **Conference**, and can only be altered by its creator.
+
+A registered user with profile can create a new **Session** and must assign each **Session** to a parent **Conference**. The creation of a **Session** also requires the inclusion of a *Speaker* (speaker name), which is also an entity. However, if the *speaker name* as inserted does not exist, a new **Speaker** object will be added along with the current **Session** key, otherwise the **Speaker** entity is updated with the **Session** key appended to the list of *session keys*.
+
+A **Speaker** is an entity with a fullname, and Session keys. The keys are not mandatory to create a speaker, and a speaker may exist outside of any conference parameters. This design decision will allow the **Speaker** entity to be part of any **Session**.
+Potential some restrictions should be provided to prevent a speaker to be part of multiple sessions at the same time.
+
+
+> See ***[Implementations for Task 1]***(task1addsessionstoaconference) for further details on the implemenations.
+
+
+
+### Task 2:
+
+Each ***Session*** object comes with a unique *key* property. This property serves many additional roles. One of the roles is to allow a registered user to add sessions to his or her wishlist.
+
+I have decided to implement the following key methods endpoints.
+
+* **addSessionToWishlist(SessionKey)** - ***As required***, to allow the selection of a session to user whishlist
+* **getSessionsInWishlist()** - ***As required***, to show the list of sessions in the whishlist.
+* **getAllSessionsInWishlist()** - this method retrieves all sessions across all conferences from a user wishlist
+* **deleteSessionFromWishlist()** - this method was deemed necessary as it makes sense. A user should be able to modify the list.
+
+>Note: The sessions are listed as part of SessionForm class, which allows the presentation of all information pertainining to the session.
+
+
+### Task 3:
+
+This task had three core objectives.
+
+First, I have made some few modifications to index.yaml, see ***[Implementations for Task 3]***(task3_worksonindexesandqueries) for more details. All my indeces were verified with the Admin Console.
+
+Second, I have thought of quite a few interesting queries. Below are the list of new queries implemented. I have further described two of them in ***[Implementations for Task 3]***(task3_worksonindexesandqueries).
+     -  getAllSessionsInWishlist	             
+     -  getAllSpeakers	                     
+     -  getConferenceSessions	                 
+     -  getConferenceSessionsByDate	         
+     -  getConferenceSessionsByLocation	     
+     -  getConferenceSessionsByLocationType	 
+     -  getConferenceSessionsByLocationTypeDate
+     -  getConferenceSessionsBySpeakerRole	 
+     -  getConferenceSessionsByType	         
+     -  getFeaturedSpeaker	                 
+     -  getSessionsBySpeaker	                 
+     -  getSessionsInWishlist	                 
+     -  querySpeakers    
+     -  getAllSessionsForNonWorksopsBefore7PM
+
+
+Lastly, I have solved the following query problem: *Provided multiple sessions of different types and start time, I should be able to retrieve non-worksop sessions that start prior to 7 PM*.
+
+At first, I thought this query was straightfoward, but soon there diffulties stemming mostly from design.
+- Date and Time objects are created with default value of None
+- Restrictions on multiple queries with inequality filter
+
+Given these restrictions, and perhaps more. I was able devise a solution that only queries for startTime values being not `None`, then I would restrict the results by excluding all *Session Types* for ***Workshop***.
+
+As described earlier **startTime** is a property of kind ***TimeProperty*** and **typeOfSession** in enumeration string value stemming from the class SessionType. 
+
+
+### Task 4:
+
+My solutions for this task was to introduce a *Memcache* and then register the associated task for storing the latest speaker that has been added and already having more than one sessions. The result for ***getFeaturedSpeaker()*** is transfered to **SpeakerForm()** class for display.See ***[Implementations for Task 4]***(task4_addatask).
+
+
 
 
 ## Implemented Tasks
@@ -68,11 +147,36 @@ Sessions was implemented with the following attributes:
 ##### sessionName, highlights, webSafeKey, typeOfSession, speaker, role, location, date, startTime, duration 
 
 - ***webSafeKey*** corresponds to the the Conference (ancestor) to which the session belongs
-_ ***role*** is an enumeration object describing the role of the speaker for the session
-- ***typeOfSession*** represents the enumeration field for the type of session
-- ***speaker*** is the actual speaker name
+- ***sessionName*** the actual name of the session as required for creation.
+- ***speaker*** is the actual speaker name as required for creation. A new **Speaker** object is created if not found.
+- ***highlights*** optional field for description and or highlights related to session
+- ***location*** location for the session within the conference.
+- ***date*** the actual date for the session formatted as *YYYY-MM-DD*
+- ***startTime*** the actual time when the session would begin formatted as *HH24:MI*.
+- ***duration*** represents the length of time a session should last in minutes. By default a session should last 50 minutes.
+- ***role*** is an enumeration object describing the role of the speaker for the session. The default value is ***Speaker***.
+    These are the complete options:
+    * NOT_SPECIFIED
+    * Speaker
+    * Host
+    * Keynote
+    * Presenter
+- ***typeOfSession*** represents the enumeration field for the type of session. The Default value is ***TBD***.
+    These are the complete options:
+    * TBD
+    * UNKNOWN
+    * Workshop
+    * Case_Study
+    * Tutorial
+    * Talk
+    * Keynote
+    * Demonstration
+    * Panel
+    * Special
+    * Forum
 
-However Speaker is implemented as an object: name, sessionKeys.
+
+Similarly the **Speaker** is implemented as an entity: name, sessionKeys.
 Where:
 
 - ***name*** is the speaker name
@@ -82,6 +186,7 @@ Where:
 > Note:
 A session belongs to a conference as its parent ancestor, each session may have a speaker. However the speaker entity exists outside of a conference.
 The method endpoint `getAllSpeakers` will return all available speakers outside of conferences.
+
 
 
 ### Task 2: Add Sessions to User Wishlist
@@ -98,7 +203,8 @@ The following API methoods were defined to support Session Whishlist
     - query for all the sessions in a conference that the user is interested in.
 
 
-### Task 3: Work on indexes and queries
+
+### Task 3: Works on indexes and queries
 
 New indeces were added to `index.yaml` representing queries of more than one search items in addition to ancestor key.
 
@@ -109,7 +215,6 @@ These are some of the method endpoints to use complex queries:
 
 
 These are excerpts from indeces added to support complex queries:
-
 
     - kind: Session
       ancestor: yes
@@ -125,6 +230,31 @@ These are excerpts from indeces added to support complex queries:
       - name: date
 
 
+Lastly:
+
+The indeces were modified to provide a better return on the query:
+
+
+    - kind: Session
+      properties:
+      - name: typeOfSession
+      - name: startTime
+
+
+Below are code excerpts:
+
+
+
+        sessions = Session.query(ndb.AND(
+            Session.startTime !=  None,
+            Session.startTime < datetime.strptime('19:00'[:10], "%H:%M").time())
+        ).fetch()
+
+        return SessionForms(
+            items=[(self._copySessionToForm(session)) for session in sessions if session.typeOfSession != 'Workshop']
+        )
+
+
 
 ### Task 4: Add a Task
 
@@ -137,6 +267,7 @@ As such the following single Endpoint is defined:
 
 
 
+
 ## Additional Endpoints
 
 ####These the endpoints implemented in this project:
@@ -145,7 +276,7 @@ As such the following single Endpoint is defined:
 * addSpeaker                                -- *Adding a speaker to Conference Central App*
 * createSession                             -- *Creates new session in a conference.*
 * deleteSessionFromWishlist                 -- *Deletes the session from the user's list of sessions expected to attend.*
-* getAllSessionsInWishlist	                -- *Queries for all the sessions in a conference that the user is interested in.*
+* getAllSessionsInWishlist	                -- *Queries for all the sessions accross all conferences that the user is interested in.*
 * getAllSpeakers	                        -- *Returns all speakers across all conferences and sessions.*
 * getConferenceSessions	                    -- *Returns all sessions in a given conference.*
 * getConferenceSessionsByDate	            -- *Returns all sessions in a given conference, provided a date.
