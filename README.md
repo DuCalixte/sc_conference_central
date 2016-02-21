@@ -23,10 +23,10 @@ This project is hosted on a cloud-based hosting platform - Google App Engine. It
 
 ## Table of contents
 
-- [Setup Instructions](#setupinstructions)
-- [Design Choices](#designchoices)
+- [Setup Instructions](#setup_instructions)
+- [Design Choices](#design_choices)
 - [Implemented Tasks](#implementedtasks)
-- [Additional Endpoints](#additionaledendpoints)
+- [Additional Endpoints](#additionalendpoints)
 
 
 
@@ -49,7 +49,7 @@ This project is hosted on a cloud-based hosting platform - Google App Engine. It
 
 
 
-## Design Choices:
+## Design Choices
 
 My core *Design Choices*: ***Conference Central*** is responsible for maintaining **Conferences**, **Profile**, **Sessions** and **Speakers**. **Sessions** belong to **Conferences** while **Speakers** are parallel entity that can  be assigned to any **Sessions** across **Conferences**. In addition a registed user to a conference can *add or deleted* **Sessions** to his or her wishlist.
 
