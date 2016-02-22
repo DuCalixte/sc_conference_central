@@ -66,13 +66,13 @@ A **Speaker** is an entity with a fullname, and Session keys. The keys are not m
 Potential some restrictions should be provided to prevent a speaker to be part of multiple sessions at the same time.
 
 
-> See ***[Implementations for Task 1]***(task1addsessionstoaconference) for further details on the implemenations.
+> See ***[Implementations for Task 1](task-1-add-sessions-to-a-conference) for further details on the implemenations.
 
 
 
 ### Task 2:
 
-Each ***Session*** object comes with a unique *key* property. This property serves many additional roles. One of the roles is to allow a registered user to add sessions to his or her wishlist.
+Each ***Session*** object comes with a unique *key* property. This property serves many additional roles. One of the roles is to allow a registered user to add sessions to his or her wishlist. See ***[Task 2: Add Sessions to User Wishlist](task-2-add-sessions-to-user-wishlist)***.
 
 I have decided to implement the following key methods endpoints.
 
@@ -90,7 +90,7 @@ This task had three core objectives.
 
 First, I have made some few modifications to index.yaml, see ***[Implementations for Task 3]***(task3_worksonindexesandqueries) for more details. All my indeces were verified with the Admin Console.
 
-Second, I have thought of quite a few interesting queries. Below are the list of new queries implemented. I have further described two of them in ***[Implementations for Task 3]***(task3_worksonindexesandqueries).
+Second, I have thought of quite a few interesting queries. Below are the list of new queries implemented. I have further described two of them in ***[Implementations for Task 3](task-3-works-on-indexes-and-queries)***.
      -  getAllSessionsInWishlist	             
      -  getAllSpeakers	                     
      -  getConferenceSessions	                 
@@ -120,7 +120,7 @@ As described earlier **startTime** is a property of kind ***TimeProperty*** and 
 
 ### Task 4:
 
-My solutions for this task was to introduce a *Memcache* and then register the associated task for storing the latest speaker that has been added and already having more than one sessions. The result for ***getFeaturedSpeaker()*** is transfered to **SpeakerForm()** class for display.See ***[Implementations for Task 4]***(task4_addatask).
+My solutions for this task was to introduce a *Memcache* and then register the associated task for storing the latest speaker that has been added and already having more than one sessions. The result for ***getFeaturedSpeaker()*** is transfered to **SpeakerForm()** class for display.See ***[Implementations for Task 4](task-4-add-a-task)***.
 
 
 
