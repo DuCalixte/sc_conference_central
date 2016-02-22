@@ -166,9 +166,9 @@ class Session(ndb.Model):
     speaker = ndb.StringProperty(required=True)
     role = ndb.StringProperty(default='Speaker')
     location = ndb.StringProperty()
-    date = ndb.DateProperty(auto_now_add=True)
-    startTime = ndb.TimeProperty(auto_now=True)
-    duration = ndb.IntegerProperty(default=0)
+    date = ndb.DateProperty(auto_now=False)
+    startTime = ndb.TimeProperty()
+    duration = ndb.IntegerProperty(default=50)
 
 
 class SessionForm(messages.Message):
@@ -221,7 +221,7 @@ class SessionLocationTypeOfSessionDateQueryForm(messages.Message):
 
 class SessionLocationTypeOfSessionQueryForm(messages.Message):
     """SessionLocationTypeOfSessionQueryForm -- Find sessions by location, type of session and date by query inbound form message"""
-    sessionLocation = messages.StringField(1, required=True)
+    sessionLocationc = messages.StringField(1, required=True)
     typeOfSession = messages.EnumField('SessionType', 2, required=True)
 
 

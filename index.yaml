@@ -101,6 +101,11 @@ indexes:
   - name: sessionsKeys
 
 - kind: Session
+  properties:
+  - name: typeOfSession
+  - name: startTime
+
+- kind: Session
   ancestor: yes
   properties:
   - name: speaker

@@ -14,6 +14,7 @@ __author__ = 'wesc+api@google.com (Stanley Calixte)'
 
 
 from datetime import datetime
+import datetime as dt
 
 import argparse as argparse
 import logging
@@ -170,7 +171,6 @@ SESSION_LOCATION_TYPE_DATE_POST_REQUEST = endpoints.ResourceContainer(
     SessionLocationTypeOfSessionDateQueryForm,
     websafeConferenceKey=messages.StringField(1),
 )
-
 
 SPEAKER_GET_REQUEST = endpoints.ResourceContainer(
     message_types.VoidMessage,
@@ -1137,7 +1137,7 @@ class ConferenceApi(remote.Service):
         http_method='POST',
         name='getConferenceSessionsByLocationTypeDate')
     def getConferenceSessionsByLocationByTypeByDate(self, request):
-        """getConferenceSessionsByLocationByTypeByDate -- Return all sessions in a given conference, given \
+        """getConferenceSessionsByLocationByTypeByDate -- Returns all sessions in a given conference, given \
           a combination of session type, location and date."""
 
         sessions = Session.query(ancestor=ndb.Key(
@@ -1151,11 +1151,29 @@ class ConferenceApi(remote.Service):
             items=[self._copySessionToForm(session) for session in sessions]
         )
 
+    @endpoints.method(message_types.VoidMessage, SessionForms,
+        path='getSessionsNonWrkSpsBfr7PM',
+        http_method='POST',
+        name='getAllSessionsForNonWorksopsBefore7PM')
+    def getAllSessionsForNonWorksopsBefore7PM(self, request):
+        """getAllSessionsForNonWorksopsBefore7PM -- Returns all sessions \
+        for all non­workshop sessions before 7 pm."""
+
+        sessions = Session.query(ndb.AND(
+            Session.startTime !=  None,
+            Session.startTime < datetime.strptime('19:00'[:10], "%H:%M").time())
+        ).fetch()
+
+        return SessionForms(
+            items=[(self._copySessionToForm(session)) for session in sessions if session.typeOfSession != 'Workshop']
+        )
+
+
     @endpoints.method(SESSION_WISHLIST_REQUEST, BooleanMessage,
                       path='conference/{websafeConferenceKey}/sessionWishlist',
                       http_method='PUT', name='addSessionToWishlist')
     def addSessionToWishlist(self, request):
-        """addSessionToWishlist -- Adding the session to the user's list of sessions they are interested in attending."""
+        """addSessionToWishlist -- Adds the session to the user's list of sessions they are interested in attending."""
         return self._manageSessionsWishlist(request)
 
     @endpoints.method(
@@ -1192,7 +1210,7 @@ class ConferenceApi(remote.Service):
                       path='getAllSessionsInWishlist',
                       http_method='GET', name='getAllSessionsInWishlist')
     def getAllSessionsInWishlist(self, request=None):
-        """getAllSessionsInWishlist -- Queries for all the sessions in a conference that the user is interested in."""
+        """getAllSessionsInWishlist -- Queries for all the sessions accross all conferences that the user is interested in."""
         prof = self._getProfileFromUser()  # get user Profile
 
         keys = prof.sessionWishList
