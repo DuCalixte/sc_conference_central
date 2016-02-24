@@ -101,7 +101,8 @@ Second, I have thought of quite a few interesting queries. Below are the list of
      -  getConferenceSessionsBySpeakerRole	 
      -  getConferenceSessionsByType	         
      -  getFeaturedSpeaker	                 
-     -  getSessionsBySpeaker	                 
+     -  getSessionsBySpeaker	
+     -  getConferenceSessionsBySpeaker
      -  getSessionsInWishlist	                 
      -  querySpeakers    
      -  getAllSessionsForNonWorksopsBefore7PM
@@ -109,13 +110,22 @@ Second, I have thought of quite a few interesting queries. Below are the list of
 
 Lastly, I have solved the following query problem: *Provided multiple sessions of different types and start time, I should be able to retrieve non-worksop sessions that start prior to 7 PM*.
 
-At first, I thought this query was straightfoward, but soon there diffulties stemming mostly from design.
+At first, I thought this query was straightfoward, but soon there difficulties stemming mostly from design.
 - Date and Time objects are created with default value of None
-- Restrictions on multiple queries with inequality filter
+- Restrictions on multiple queries with inequality filter as inequality may only to atc most one property, and in the case of this assignment I would need to apply such filters to both ***typeOfSession*** and ***workshop***.
+- Properties used in Enequality filters must be sorted
+- Unpredictable results may occur when using enequality filters.
 
-Given these restrictions, and perhaps more. I was able devise a solution that only queries for startTime values being not `None`, then I would restrict the results by excluding all *Session Types* for ***Workshop***.
 
-As described earlier **startTime** is a property of kind ***TimeProperty*** and **typeOfSession** in enumeration string value stemming from the class SessionType. 
+Given these restrictions, and perhaps more. The core issue is to figure a way to apply mutiple ***enequality*** filters to multiple properties, which is not possible.
+
+However, I was able devise a solution that only queries for actual startTime values *(that is being not `None`)*, then I would restrict the results by excluding all *Session Types* for ***Workshop***.
+
+In addition, I have proposed an alternative solution also shown below in reference. Both solutions sort the results by startTime, and exclude all sessions without a startTime value first and then filter for startTime prior to 7PM.
+
+
+>Note: As described earlier **startTime** is a property of kind ***TimeProperty*** and **typeOfSession** in enumeration string value stemming from the class SessionType. 
+
 
 
 ### Task 4:
@@ -241,18 +251,56 @@ The indeces were modified to provide a better return on the query:
       - name: startTime
 
 
-Below are code excerpts:
+I have come up with two alternative solutions for the query methods. They both work, but I have chosen one for the final solutions. Solution 2 is the one being used in the codes.
 
+#### Solution 1: (not in code)
+This solutions exploits the fact that multiples queries are possible solong that the *inequality* filter is applied to at most one property while I can use *equality* on multiple properties.
 
+        @endpoints.method(message_types.VoidMessage, SessionForms,
+            path='getSessionsNonWrkSpsBfr7PM',
+            http_method='POST',
+            name='getAllSessionsForNonWorksopsBefore7PM')
+        def getAllSessionsForNonWorksopsBefore7PM(self, request):
+            """getAllSessionsForNonWorksopsBefore7PM -- Returns all sessions \
+            for all non­workshop sessions before 7 pm."""
+    
+            sessions = Session.query(ndb.AND(
+                Session.typeOfSession.IN(['TBD', 'UNKNOWN', 'Case_Study', 'Tutorial', 'Talk', 'Keynote', 'Demonstration', 'Panel','Special','Forum' ]),
+                Session.startTime !=  None,
+                Session.startTime < datetime.strptime('19:00'[:10], "%H:%M").time())
+            ).order(Session.startTime).fetch()
+            
+            return SessionForms(
+                items=[self._copySessionToForm(session) for session in sessions]
+            )
 
-        sessions = Session.query(ndb.AND(
-            Session.startTime !=  None,
-            Session.startTime < datetime.strptime('19:00'[:10], "%H:%M").time())
-        ).fetch()
+>Note: My only problem with this solution is that I need to provide a complete list of sessions only to exclude one session. it seems overkill.
+ 
+ 
+####Solution 2: (Please see code):
+ 
+ I propose this solution mostly be cause it is brief. the obvious problem being it does not exclude workshop on query, but only excludes to return workshop on method request. I also like it because I can now change the structures or the enumaration list for SessionType with worrying about updating methods.
+ 
+ 
+        
+        @endpoints.method(message_types.VoidMessage, SessionForms,
+            path='getSessionsNonWrkSpsBfr7PM',
+            http_method='POST',
+            name='getAllSessionsForNonWorksopsBefore7PM')
+        def getAllSessionsForNonWorksopsBefore7PM(self, request):
+            """getAllSessionsForNonWorksopsBefore7PM -- Returns all sessions \
+            for all non­workshop sessions before 7 pm."""
+    
+            sessions = Session.query(ndb.AND(
+                Session.startTime !=  None,
+                Session.startTime < datetime.strptime('19:00'[:10], "%H:%M").time())
+            ).order(Session.startTime).fetch()
+    
+            return SessionForms(
+                items=[(self._copySessionToForm(session)) for session in sessions if session.typeOfSession != 'Workshop']
+            )
 
-        return SessionForms(
-            items=[(self._copySessionToForm(session)) for session in sessions if session.typeOfSession != 'Workshop']
-        )
+>Note: I can post both methods in conference if necessary.
 
 
 
@@ -287,6 +335,7 @@ As such the following single Endpoint is defined:
 * getConferenceSessionsByType	            -- *Returns all sessions in a given conference, given a specific type.
 * getFeaturedSpeaker	                    -- *Returns featured speaker from memcache.*
 * getSessionsBySpeaker	                    -- *Returns all sessions from a given speaker.*
+* getConferenceSessionsBySpeaker            -- *Returns all sessions from a given speaker at specific conference.
 * getSessionsInWishlist	                    -- *Returns all the sessions in a conference that the user is interested in.*
 * querySpeakers                             -- *Implements Custom Queries for speakers.*
 

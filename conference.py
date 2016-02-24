@@ -14,7 +14,6 @@ __author__ = 'wesc+api@google.com (Stanley Calixte)'
 
 
 from datetime import datetime
-import datetime as dt
 
 import argparse as argparse
 import logging
@@ -1018,13 +1017,34 @@ class ConferenceApi(remote.Service):
         )
 
     @endpoints.method(
-        SPEAKER_IN_SESSION_POST_REQUEST,
+        SPEAKER_GET_REQUEST,
         SessionForms,
-        path='conference/{websafeConferenceKey}/getSessionsBySpeaker',
+        path='getSessionsBySpeaker',
         http_method='POST',
         name='getSessionsBySpeaker')
     def getSessionsBySpeaker(self, request):
         """getSessionsBySpeaker -- Returns all sessions from a given speaker."""
+
+        # query sessions by speaker name in the conference
+        sessions = Session.query(
+            Session.speaker == request.speakerName).fetch()
+        if not sessions:
+            raise endpoints.ForbiddenException(
+                "no sessions found.")
+
+        # return set of SessionForm objects
+        return SessionForms(
+            items=[self._copySessionToForm(session) for session in sessions]
+        )
+
+    @endpoints.method(
+        SPEAKER_IN_SESSION_POST_REQUEST,
+        SessionForms,
+        path='conference/{websafeConferenceKey}/getConferenceSessionsBySpeaker',
+        http_method='POST',
+        name='getConferenceSessionsBySpeaker')
+    def getConferenceSessionsBySpeaker(self, request):
+        """getConferenceSessionsBySpeaker -- Returns all sessions from a given speaker at specific conference."""
 
         # query sessions by speaker name in the conference
         sessions = Session.query(ancestor=ndb.Key(
@@ -1162,7 +1182,7 @@ class ConferenceApi(remote.Service):
         sessions = Session.query(ndb.AND(
             Session.startTime !=  None,
             Session.startTime < datetime.strptime('19:00'[:10], "%H:%M").time())
-        ).fetch()
+        ).order(Session.startTime).fetch()
 
         return SessionForms(
             items=[(self._copySessionToForm(session)) for session in sessions if session.typeOfSession != 'Workshop']
